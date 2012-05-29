@@ -1,0 +1,32 @@
+<?php
+abstract class SniffTestCase extends PHPUnit_Framework_TestCase
+{
+    protected $_phpcs;
+
+    public function setUp($sniffs)
+    {
+        $this->_phpcs = new PHP_CodeSniffer();
+        $this->_phpcs->process(array(), 'DWS', $sniffs);
+    }
+
+    protected function assertErrorMessages($expectedErrorMessages)
+    {
+        if (is_string($expectedErrorMessages))
+            $expectedErrorMessages = array($expectedErrorMessages);
+
+        $errors = print_r($this->_phpcs->getFilesErrors(), true);
+
+        foreach ($expectedErrorMessages as $expectedMessage) {
+            $this->assertContains($expectedMessage, $errors, "PHPCS errors didn't contain $expectedMessage the errors were: $errors");
+        }
+    }
+
+    protected function assertNoErrors($fileName)
+    {
+        $errors = $this->_phpcs->getFilesErrors();
+        $errorsText = print_r($errors, true);
+
+        $this->assertSame(0, $errors[$fileName]['numWarnings'], "PHPCS warnings wasn't empty in file $fileName.  The errors were: $errorsText");
+        $this->assertSame(0, $errors[$fileName]['numErrors'], "PHPCS errors wasn't empty in file $fileName.  The errors were: $errorsText");
+    }
+}
